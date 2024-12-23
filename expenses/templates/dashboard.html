@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Finance Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #eef2f3, #8e9eab);
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .tabs div {
+            flex: 1;
+            text-align: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #007BFF;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .tabs div.active {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .summary div {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .history-table th, .history-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .history-table th {
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+        }
+
+        .history-table td {
+            text-align: center;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .remaining-amount {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007BFF;
+            text-align: center;
+        }
+
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .savings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .savings-container input, .savings-container button {
+            width: 100%;
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Welcome to your Dashboard, {{ user.username }}!</h2>
+    <a href="{% url 'logout.html' %}" class="btn btn-primary" style="background-color: blue; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; align:right">Log out</a>
+    <div class="container">
+        
+        <h1>💰 Intelligent Finance Tracker</h1>
+        <div class="tabs">
+            <div class="tab-link active" data-tab="add-transaction">➕ Add Transaction</div>
+            <div class="tab-link" data-tab="view-history">📜 View History</div>
+            <div class="tab-link" data-tab="savings">💸 Savings</div>
+        </div>
+
+        <!-- Add Transaction -->
+        <div class="tab-content active" id="add-transaction">
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type">
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" placeholder="E.g., Salary, Rent, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" placeholder="Enter the amount">
+                </div>
+                <button id="addTransactionBtn">Add Transaction</button>
+            </div>
+
+            <div class="summary">
+                <div>Total Income: ₹<span id="totalIncome">0</span></div>
+                <div>Total Expense: ₹<span id="totalExpense">0</span></div>
+            </div>
+
+            <!-- Remaining Amount -->
+            <div class="remaining-amount" id="remainingAmount">
+                Remaining Balance: ₹<span>0</span>
+            </div>
+
+            <!-- Alert for Expense Exceeding Income -->
+            <div class="alert" id="expenseAlert">
+                Your expenses are higher than your income. Please manage your spending.
+            </div>
+        </div>
+
+        <!-- View History -->
+        <div class="tab-content" id="view-history">
+
+            <div  style="display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap;">
+                <!-- Budget Used Chart -->
+                <div style="flex: 1; max-width: 45%;">
+                    <h3>Monthly Overview</h3>
+                    <p>Percentage of Budget Used: <span id="percentageUsed">0%</span></p>
+                    <canvas id="budgetChart" style="max-width: 300px; max-height: 300px;"</canvas>
+                </div>
+        
+                <!-- Expense Categories Chart -->
+                <div style="flex: 1; max-width: 45%;">
+                    <h3>Expense Categories</h3>
+                    <canvas id="expenseCategoryChart" style="max-width: 300px; max-height: 300px;"></canvas>
+                </div>
+                
+            </div>
+           
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        
+                        <th>Description</th>
+                        <th>Amount (₹)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTable">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Savings Tab -->
+        <div class="tab-content" id="savings">
+            <div class="savings-container">
+                <div class="form-group">
+                    <label for="savingsGoal">Enter Savings Goal</label>
+                    <input type="number" id="savingsGoal" placeholder="Set your savings goal">
+                </div>
+                <button id="setSavingsGoal">Set Savings Goal</button>
+                <div id="progressBar" class="progress">
+                    <div id="progress" class="progress-bar"></div>
+                </div>
+                <div id="savingsStatus"></div>
+            </div>
+        </div>
+       
+    </div>
+
+    <button id="downloadPdfBtn" style:"justify-content:space-between,align-items:center color:blue">Download PDF</button>
+    <script>
+        const tabs = document.querySelectorAll(".tab-link");
+        const tabContents = document.querySelectorAll(".tab-content");
+        const typeInput = document.getElementById("type");
+        const descriptionInput = document.getElementById("description");
+        const amountInput = document.getElementById("amount");
+        const addTransactionBtn = document.getElementById("addTransactionBtn");
+        const totalIncomeEl = document.getElementById("totalIncome");
+        const totalExpenseEl = document.getElementById("totalExpense");
+        const remainingAmountEl = document.getElementById("remainingAmount").children[0];
+        const historyTable = document.getElementById("historyTable");
+        const expenseAlert = document.getElementById("expenseAlert");
+
+        let totalIncome = 0;
+        let totalExpense = 0;
+        let transactions = [];
+       
+        
+        // Tab navigation
+        tabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                tabs.forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                const targetTab = tab.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.remove("active");
+                    if(content.id === targetTab) content.classList.add("active");
+                });
+            });
+        });
+
+        // Add Transaction
+        addTransactionBtn.addEventListener("click", () => {
+            const type = typeInput.value;
+            const description = descriptionInput.value;
+            const amount = parseFloat(amountInput.value);
+            
+            if(description && amount) {
+                const transaction = {
+                    type, description, amount, id: Date.now()
+                };
+                transactions.push(transaction);
+
+                if(type === "Income") {
+                    totalIncome += amount;
+                } else {
+                    totalExpense += amount;
+                }
+
+                // Check if expenses exceed income
+                if(totalExpense > totalIncome) {
+                    expenseAlert.style.display = "block";
+                } else {
+                    expenseAlert.style.display = "none";
+                }
+
+                updateSummary();
+                updateHistory();
+                
+                typeInput.value = "Income";
+                descriptionInput.value = "";
+                amountInput.value = "";
+            }
+        });
+
+        // Update Summary and History
+        function updateSummary() {
+            totalIncomeEl.textContent = totalIncome;
+            totalExpenseEl.textContent = totalExpense;
+            remainingAmountEl.textContent = totalIncome - totalExpense;
+            const percentageElement = document.getElementById("percentageUsed");
+            const percentageUsed = totalIncome > 0 ? ((totalExpense / totalIncome) * 100).toFixed(2) : "N/A";
+    if (percentageElement) {
+        percentageElement.textContent = `${percentageUsed}%`;
+    }
+        }
+       
+        function updateHistory() {
+            historyTable.innerHTML = '';
+            transactions.forEach((transaction, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${transaction.type}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.amount}</td>
+                    <td><button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button></td>
+                `;
+                historyTable.appendChild(row);
+            });
+        }
+
+        // Delete Transaction
+        function deleteTransaction(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if(transaction) {
+                if(transaction.type === "Income") {
+                    totalIncome -= transaction.amount;
+                } else {
+                    totalExpense -= transaction.amount;
+                }
+                transactions = transactions.filter(t => t.id !== id);
+                updateSummary();
+                updateHistory();
+            }
+        }
+
+        // Savings Goal
+        const setSavingsGoal = document.getElementById("setSavingsGoal");
+        const progressBar = document.getElementById("progress");
+        const savingsStatus = document.getElementById("savingsStatus");
+        //const savingsGoal=document.getElementById("savingsGoal");
+        setSavingsGoal.addEventListener("click", () => {
+            savingsGoal = parseFloat(document.getElementById("savingsGoal").value);
+            if(savingsGoal > 0) {
+                updateSavingsProgress(savingsGoal);
+            }
+        });
+
+        
+        function updateSavingsProgress(savingsGoal) {
+            const savingsProgress = totalIncome - totalExpense;
+            const progressPercentage = (savingsProgress / savingsGoal) * 100;
+
+            if(progressPercentage >= 100) {
+                savingsStatus.textContent = "Savings Goal Achieved!";
+            } else {
+                savingsStatus.textContent = `You need ₹${savingsGoal - savingsProgress} more to reach your savings goal.`;
+            }
+
+            progressBar.style.width = progressPercentage + "%";
+        }
+        const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+        document.getElementById("downloadPdfBtn").addEventListener("click", async function () {
+            const { jsPDF } = window.jspdf;
+        
+            // Initialize jsPDF instance
+            const doc = new jsPDF();
+        
+            // Example: Fetch dynamic data
+            const totalExpense = parseFloat(document.getElementById("totalExpense").textContent) || 0;
+            const totalIncome = parseFloat(document.getElementById("totalIncome").textContent) || 0;
+            const remainingBalance = totalIncome - totalExpense;
+            const averageExpense = (totalExpense / 30).toFixed(2); // Assuming a 30-day month
+        
+            // Add title and summary text
+            doc.setFontSize(16);
+            doc.text("Financial Report", 14, 20);
+        
+            doc.setFontSize(12);
+            doc.text(`Total Income: ${totalIncome}`, 14, 30);
+            doc.text(`Total Expense: ${totalExpense}`, 14, 40);
+            doc.text(`Average Daily Expense: ${averageExpense}`, 14, 50);
+            doc.text(`Remaining Balance: ${remainingBalance}`, 14, 60);
+            
+
+        
+            // Add transaction history
+           
+            let yPosition = 70; // Starting y-coordinate for the table
+            doc.text("Transaction History:", 14, yPosition);
+            yPosition += 10;
+        
+            // Table headers
+            doc.setFontSize(10);
+            doc.text("Type", 14, yPosition);
+            doc.text("Description", 50, yPosition);
+            doc.text("Amount (Rs)", 120, yPosition);
+            yPosition += 10;
+        
+            // Add each transaction
+            transactions.forEach(transaction => {
+                // Check if there is enough space for the next row
+                if (yPosition + 10 > doc.internal.pageSize.height) {
+                    doc.addPage(); // Add a new page
+                    yPosition = 10; // Reset yPosition for the new page
+                }
+                doc.text(transaction.type, 14, yPosition);
+                doc.text(transaction.description, 50, yPosition);
+                doc.text(transaction.amount.toString(), 120, yPosition);
+                yPosition += 10;
+            });
+        
+            // Add charts
+            const pageHeight = doc.internal.pageSize.height; // Total page height
+            const chartHeight = 100; // Adjust based on your chart dimensions
+            
+
+    // Update the webpage with the percentage used
+    
+            const chartCanvas1 = document.getElementById("budgetChart");
+            if (chartCanvas1) {
+                const chartImage1 = chartCanvas1.toDataURL("image/png");
+        
+                // Check if the image fits on the current page, add new page if not
+                if (yPosition + chartHeight > pageHeight) {
+                    doc.addPage(); // Add a new page
+                    yPosition = 10; // Reset yPosition for the new page
+                }
+        
+                doc.addImage(chartImage1, "PNG", 14, yPosition, 180, chartHeight); // First chart
+                yPosition += chartHeight + 5;
+                doc.text("Budget Chart: Income vs Expense", 14, yPosition);
+                yPosition += chartHeight + 10; // Move yPosition for the next chart
+                doc.text(`Percentage Used: ${percentageUsed}%`, 14, yPosition+10);
+            }
+        
+            const chartCanvas2 = document.getElementById("expenseCategoryChart");
+            if (chartCanvas2) {
+                const chartImage2 = chartCanvas2.toDataURL("image/png");
+        
+                // Check if the image fits on the current page, add new page if not
+                if (yPosition + chartHeight > pageHeight) {
+                    doc.addPage(); // Add a new page
+                    yPosition = 10; // Reset yPosition for the new page
+                }
+                
+                doc.addImage(chartImage2, "PNG", 14, yPosition, 180, chartHeight); // Second chart
+            }
+            yPosition += chartHeight + 5;
+            doc.text("Expense Category Chart", 14, yPosition);
+           
+            // Save the PDF
+            doc.save("Financial_Report.pdf");
+        });
+        
+
+    /*document.getElementById("downloadPdfBtn").addEventListener("click", async function () {
+            const { jsPDF } = window.jspdf;
+        
+            // Initialize jsPDF instance
+            const doc = new jsPDF();
+        
+            // Example: Fetch dynamic data
+            const totalExpense = parseFloat(document.getElementById("totalExpense").textContent) || 0;
+            const totalIncome = parseFloat(document.getElementById("totalIncome").textContent) || 0;
+            const remainingBalance = totalIncome - totalExpense;
+            const averageExpense = (totalExpense / 30).toFixed(2); // Assuming a 30-day month
+        
+            // Add title and summary text
+            doc.setFontSize(16);
+            doc.text("Financial Report", 14, 20);
+        
+            doc.setFontSize(12);
+            doc.text(`Total Income: ${totalIncome}`, 14, 30);
+            doc.text(`Total Expense: ${totalExpense}`, 14, 40);
+            doc.text(`Average Daily Expense: ${averageExpense}`, 14, 50);
+            doc.text(`Remaining Balance: ${remainingBalance}`, 14, 60);
+        
+            // Add transaction history
+            const transactions = [
+                // Example data; replace with dynamic data
+                //{ type: "Income", description: "Salary", amount: 50000 },
+                { type: "Expense", description: "Rent", amount: 15000 },
+                { type: "Expense", description: "Groceries", amount: 5000 },
+            ];
+        
+            let yPosition = 70; // Starting y-coordinate for the table
+            doc.text("Transaction History:", 14, yPosition);
+            yPosition += 10;
+        
+            // Table headers
+            doc.setFontSize(10);
+            doc.text("Type", 14, yPosition);
+            doc.text("Description", 50, yPosition);
+            doc.text("Amount (Rs)", 120, yPosition);
+            yPosition += 10;
+        
+            // Add each transaction
+            transactions.forEach(transaction => {
+                doc.text(transaction.type, 14, yPosition);
+                doc.text(transaction.description, 50, yPosition);
+                doc.text(transaction.amount.toString(), 120, yPosition);
+                yPosition += 10;
+            });
+        
+            let yPosition = 10; // Initial y position for charts
+            const pageHeight = doc.internal.pageSize.height; // Total page height
+            const chartHeight = 100; // Adjust based on your chart dimensions
+        
+            const chartCanvas1 = document.getElementById("budgetChart");
+            if (chartCanvas1) {
+                const chartImage1 = chartCanvas1.toDataURL("image/png");
+        
+                // Check if the image fits on the current page, add new page if not
+                if (yPosition + chartHeight > pageHeight) {
+                    doc.addPage(); // Add a new page
+                    yPosition = 10; // Reset yPosition for the new page
+                }
+        
+                doc.addImage(chartImage1, "PNG", 14, yPosition, 180, chartHeight); // First chart
+                yPosition += chartHeight + 10; // Move yPosition for the next chart
+            }
+        
+            const chartCanvas2 = document.getElementById("expenseCategoryChart");
+            if (chartCanvas2) {
+                const chartImage2 = chartCanvas2.toDataURL("image/png");
+        
+                // Check if the image fits on the current page, add new page if not
+                if (yPosition + chartHeight > pageHeight) {
+                    doc.addPage(); // Add a new page
+                    yPosition = 10; // Reset yPosition for the new page
+                }
+        
+                doc.addImage(chartImage2, "PNG", 14, yPosition, 180, chartHeight); // Second chart
+            }
+        
+            // Save the PDF
+            doc.save("Financial_Report.pdf");
+        
+        });*/
+
+
+        let budgetChart, expenseCategoryChart;
+
+function updateCharts() {
+    // Prepare data for Budget Chart
+    const totalBudget = totalIncome; // Assuming budget = income
+    const budgetUsed = totalExpense; // Expense is "used budget"
+    const budgetRemaining = totalBudget - budgetUsed;
+
+    const budgetData = [budgetUsed, budgetRemaining];
+
+    // Prepare data for Expense Category Chart
+    const categoryData = transactions
+        .filter(t => t.type === "Expense")
+        .reduce((acc, curr) => {
+            acc[curr.description] = (acc[curr.description] || 0) + curr.amount;
+            return acc;
+        }, {});
+
+    const categoryLabels = Object.keys(categoryData);
+    const categoryAmounts = Object.values(categoryData);
+
+    // Update Budget Chart
+    if (budgetChart) budgetChart.destroy();
+    budgetChart = new Chart(document.getElementById("budgetChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Used Budget", "Remaining Budget"],
+            datasets: [
+                {
+                    data: budgetData,
+                    backgroundColor: ["#FF6384", "#36A2EB"],
+                },
+            ],
+        },
+        options: {
+            plugins: {
+                legend: { position: "bottom" },
+            },
+        },
+    });
+
+    // Update Expense Category Chart
+    if (expenseCategoryChart) expenseCategoryChart.destroy();
+    expenseCategoryChart = new Chart(document.getElementById("expenseCategoryChart"), {
+        type: "bar",
+        data: {
+            labels: categoryLabels,
+            datasets: [
+                {
+                    label: "Amount (₹)",
+                    data: categoryAmounts,
+                    backgroundColor: ["#FF9F40", "#36A2EB", "#4BC0C0", "#FF6384"],
+                },
+            ],
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true },
+            },
+        },
+    });
+}
+
+// Call updateCharts whenever the transaction history is updated
+function updateHistory() {
+    historyTable.innerHTML = "";
+    transactions.forEach((transaction, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${transaction.type}</td>
+            <td>${transaction.description}</td>
+            <td>${transaction.amount}</td>
+            <td><button class="delete-btn" onclick="deleteTransaction(${transaction.id})">Delete</button></td>
+        `;
+        historyTable.appendChild(row);
+    });
+
+    // Update charts
+    updateCharts();
+}
+        
+    </script>
+</body>
+</html>
