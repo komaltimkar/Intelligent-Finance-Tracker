@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Intelligent Finance Tracker</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <!-- jQuery, Popper.js, and Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #eef2f3, #8e9eab);
+            color: #333;
+        }
+
+        image{
+            height:100%;
+            width:100%;
+        }
+        .full-screen-bg {
+            background:  no-repeat center center fixed;
+            background-size: cover;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar (Optional) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Intelligent Finance Tracker</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}">Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="main">
+        <marquee direction=left> <p id="tag",style:"font-weight:400"><b>Track, Save, Grow – Your Money, Simplified...!!!</b></p>
+                
+        </marquee>
+      </div> 
+    <!-- Main Container -->
+    <div class="container mt-4">
+        <!-- Content Block -->
+        {% block content %}
+        <image src= "https://tse4.mm.bing.net/th?id=OIP.7lbxQvqjLarrQWuQhG_Z8wHaEl&pid=Api&P=0&h=180" class="full-screen-bg">
+        {% endblock %}
+    </div>
+
+    <!-- Footer (Optional) -->
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <p>&copy; Django App</p>
+    </footer>
+
+</body>
+</html>
